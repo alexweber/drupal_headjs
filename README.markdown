@@ -4,15 +4,15 @@ Drupal Headjs is a module for Drupal 6 which attempts to integrate the great hea
 
 Despite apparently working and having no conflicts with a number of contrib modules others and some core Drupal functionality like collapsible fieldsets get broken. If you are interested please fork this and help me figure it out!
 
+* Requires [https://github.com/headjs/headjs/](head.js 0.2+)
+* Docs: -none yet-
+
 Drupal contrib modules tested ok:
 
   * Fivestar
   * jQuery UI
   * jQuery Update
   * Quicktabs
-
-* Requires [](head.js 0.2+)
-* Docs: -none yet-
 
 
 ## License
