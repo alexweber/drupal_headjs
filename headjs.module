@@ -1,0 +1,163 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Overrides Drupal's standard javascript loading methods to use head.js
+ */
+
+// save default paths to full & loader-only versions
+define('HEADJS_PATH_FULL', 'head.min.js');
+define('HEADJS_PATH_LOADER', 'src/head.loader.js');
+
+/**
+ * Implementation of hook_theme_registry_alter().
+ *
+ * Make headjs' page preprocess function run after everything else's,
+ * so that a theme can't call drupal_get_js() and mess everything up.
+ * Also so that if jQuery Update is present it can work normally
+ */
+function headjs_theme_registry_alter(&$theme_registry) {
+  $theme_registry['page']['preprocess functions'][] = 'headjs_preprocess_page';
+}
+
+/**
+ * Implementation of moduleName_preprocess_hook().
+ *
+ * Replace Drupal's javascript includes with head.js version
+ */
+function headjs_preprocess_page(&$variables) {
+  $headjs_enabled = current(variable_get('headjs_enable', 
+    array('enable' => 'enable'))) !== 0;
+
+  // Only replace if setting enabled and page has javascript
+  if ($headjs_enabled && !empty($variables['scripts'])) {
+    $scripts = drupal_add_js();
+
+    $tempScripts = array();
+
+    // grab list of js includes in the queue
+    foreach ($scripts as $category => $cat) {
+      foreach ($cat as $script => $data) {
+        if (in_array($category, array('core', 'module', 'theme'))) {
+          $tempScripts[] = (string) $script;
+        }
+      }
+    }
+
+    // decide which head.js to use; the full script or only the loader
+    $headjs_version = variable_get('headjs_version', 'full');
+    $head_script = ($headjs_version === 'full')
+      ? HEADJS_PATH_FULL
+      : HEADJS_PATH_LOADER;
+
+    // clear js includes & add head.js as the only one
+    $scripts['theme'] = $scripts['module'] = array();
+    $scripts['core'] = array(
+      drupal_get_path('module', 'headjs') . '/headjs/' . $head_script => array(
+        'cache' => TRUE,
+        'defer' => FALSE,
+        'preprocess' => FALSE
+      )
+    );
+
+    // build head.js function call
+    $headjs = 'head';
+    foreach ($tempScripts as $js) {
+      $headjs .= '.js("' . $js . '")';
+    }
+    
+    // Build settings script
+    $callback = 'jQuery.extend(Drupal.settings, ' . 
+      drupal_to_js(call_user_func_array('array_merge_recursive', 
+        $scripts['setting'])) . ");";
+    
+    // Execute callback on head.ready()
+    $headjs .= "\n.ready(function(){" . $callback . "});";
+    
+    // Make sure head.js is the first inline script but allow other
+    // inline scripts to coexist
+    array_unshift($scripts['inline'], 
+      array('code' => $headjs, 'defer' => FALSE));
+    
+    // empty settings array
+    $scripts['setting'] = array();
+    unset($scripts['setting']);
+    
+    $variables['scripts'] = drupal_get_js('header', $scripts);
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function headjs_menu() {
+  $items['admin/settings/headjs'] = array(
+    'title' => t('Headjs Settings'),
+    'description' => t('Configure settings for Headjs module.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('headjs_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  return $items;
+}
+
+/**
+ * Admin settings form.
+ */
+function headjs_settings() {
+  // Clear the javascript cache when the setting is updated
+  $form['#submit'][] = 'drupal_clear_js_cache';
+
+  $form['headjs_enable'] = array(
+    '#type' => 'checkboxes',
+    '#name' => 'headjs_enable',
+    '#title' => t('Enable head.js'),
+    '#options' => array('enable' => t('Enabled')),
+    '#default_value' => variable_get('headjs_enable', 
+      array('enable' => 'enable')),
+    '#weight' => '-2',
+  );
+  
+  $form['headjs_version'] = array(
+    '#type' => 'radios',
+    '#title' => t('Choose head.js version'),
+    '#options' => array(
+      'full' => t('Full version'),
+      'loader' => t('Loader only'),
+    ),
+    '#default_value' => variable_get('headjs_version', 'full'),
+    '#weight' => '-1',
+  );
+
+  $form['headjs_advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced Settings'),
+    '#description' => t('Customize path to head.js library'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => '0',
+  );
+
+  $form['headjs_advanced']['head_path_full'] = array(
+    '#type' => 'textfield',
+    '#title' => t('head.min.js path'),
+    '#description' => t('Relative to /sites/all/modules/headjs/headjs/'),
+    '#required' => '1',
+    '#size' => '40',
+    '#default_value' => variable_get('headjs_path_full', HEADJS_PATH_FULL),
+    '#weight' => '0',  
+  );
+  
+  $form['headjs_advanced']['head_path_loader'] = array(
+    '#type' => 'textfield',
+    '#title' => t('head.loader.js path'),
+    '#description' => t('Relative to /sites/all/modules/headjs/headjs/'),
+    '#required' => '1',
+    '#size' => '40',
+    '#default_value' => variable_get('headjs_path_loader', HEADJS_PATH_LOADER),
+    '#weight' => '1',
+  );
+  
+  return system_settings_form($form);
+}

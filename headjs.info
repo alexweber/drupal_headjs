@@ -1,0 +1,7 @@
+; $Id$
+name = Head.js
+description = Implementation of head.js javascript loading library
+core = 6.x
+package = User interface
+
+project = "headjs"

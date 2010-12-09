@@ -1,0 +1,24 @@
+// $Id$
+
+Headjs 6.x-1.1, 2010-12-09
+---------------------------
+- Added some missing t() function calls around strings
+- Minor code & comment cleanup
+- Confirmed support with the following 3rd party services:
+
+  * Twitter share widget
+  * Facebook share widget
+  * Linkedin share widget
+  * Orkut share widget
+
+Headjs 6.x-1.0, 2010-12-08
+---------------------------
+- Initial beta release for Drupal 6
+- Working with head.js 0.2
+- Tested with the following contrib modules:
+
+  * Fivestar
+  * Javascript Aggregator
+  * jQuery UI
+  * jQuery Update
+  * Quicktabs
