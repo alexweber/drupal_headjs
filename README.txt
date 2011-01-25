@@ -1,4 +1,4 @@
-// $Id: README.txt,v 1.1.2.1 2011/01/25 10:24:15 alexweber Exp $
+// $Id: README.txt,v 1.1.2.2 2011/01/25 12:37:20 alexweber Exp $
 
 CONTENTS OF THIS FILE
 ---------------------
@@ -35,28 +35,21 @@ REQUIREMENTS
 INSTALLATION
 ------------
 
-1. Copy the headjs directory to your sites/SITENAME/modules directory
-   or sites/all/modules directory.
+1. Copy the headjs directory to your sites/SITENAME/modules directory or sites/all/modules directory.
 
 2. * Download the head.js release from:
 
-     https://github.com/headjs/headjs
+     http://headjs.com/#download
 
-   * Put the downloaded archive into the module directory:
+   * Extract to sites/all/libraries/headjs
 
-     /sites/all/modules/headjs/headjs.zip
+   * The actual head.js files should be located in:
 
-   * Extract the archive.  This will create the following sub-directory:
-
-     /sites/all/modules/headjs/headjs
-    
-     so the actual head.js files are located in:
-
-     /sites/all/modules/headjs/headjs/head.min.js
+     /sites/all/libraries/headjs/head.min.js
     
      and
     
-     /sites/all/modules/headjs/headjs/head.load.min.js
+     /sites/all/libraries/headjs/head.load.min.js
 
 3. Enable the module at Administer >> Site building >> Modules.
 
@@ -68,4 +61,4 @@ INSTALLATION
 KNOWN ISSUES
 ------------
 
-- None so far
+- Doesn't play nice with jQuery Update

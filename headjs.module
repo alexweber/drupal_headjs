@@ -1,5 +1,5 @@
 <?php
-// $Id: headjs.module,v 1.1.2.1 2011/01/25 11:10:11 alexweber Exp $
+// $Id: headjs.module,v 1.1.2.2 2011/01/25 12:37:20 alexweber Exp $
 
 /**
  * @file
@@ -56,7 +56,7 @@ function headjs_preprocess_page(&$variables) {
     // clear js includes & add head.js as the only one
     $scripts['theme'] = $scripts['module'] = array();
     $scripts['core'] = array(
-      drupal_get_path('module', 'headjs') . '/headjs/' . $head_script => array(
+      'sites/all/libraries/headjs/' . $head_script => array(
         'cache' => TRUE,
         'defer' => FALSE,
         'preprocess' => TRUE
@@ -92,8 +92,8 @@ function headjs_preprocess_page(&$variables) {
  */
 function headjs_menu() {
   $items['admin/settings/headjs'] = array(
-    'title' => 'Headjs Settings',
-    'description' => 'Configure settings for Headjs module.',
+    'title' => t('Headjs Settings'),
+    'description' => t('Configure settings for Headjs module.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('headjs_settings'),
     'access arguments' => array('administer site configuration'),
@@ -128,34 +128,5 @@ function headjs_settings() {
     '#weight' => '-1',
   );
 
-  $form['headjs_advanced'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Advanced Settings'),
-    '#description' => t('Customize path to head.js library.'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#weight' => '0',
-  );
-
-  $form['headjs_advanced']['head_path_full'] = array(
-    '#type' => 'textfield',
-    '#title' => t('head.min.js path'),
-    '#description' => t('Relative to /sites/all/modules/headjs/headjs/.'),
-    '#required' => '1',
-    '#size' => '40',
-    '#default_value' => variable_get('headjs_path_full', HEADJS_PATH_FULL),
-    '#weight' => '0',  
-  );
-  
-  $form['headjs_advanced']['head_path_loader'] = array(
-    '#type' => 'textfield',
-    '#title' => t('head.loader.js path'),
-    '#description' => t('Relative to /sites/all/modules/headjs/headjs/.'),
-    '#required' => '1',
-    '#size' => '40',
-    '#default_value' => variable_get('headjs_path_loader', HEADJS_PATH_LOADER),
-    '#weight' => '1',
-  );
-  
   return system_settings_form($form);
 }
