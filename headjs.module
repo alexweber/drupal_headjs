@@ -1,5 +1,5 @@
 <?php
-// $Id: headjs.module,v 1.1.2.2 2011/01/25 12:37:20 alexweber Exp $
+// $Id: headjs.module,v 1.1.2.3 2011/01/25 13:01:19 alexweber Exp $
 
 /**
  * @file
@@ -49,6 +49,20 @@ function headjs_preprocess_page(&$variables) {
       }
     }
 
+    // Check for js added via drupal_set_html_head()
+    // http://drupal.org/node/1029264#comment-3998976
+    if (strpos($variables['head'], '<script') !== false) {
+      $matches = array();
+      preg_match('#<script .+?</script>#s', $variables['head'], $matches);
+
+      foreach ($matches as $match) {
+        $variables['head'] = str_replace($match, '', $variables['head']);
+        $matches_scriptname = array();
+        preg_match('#type="text/javascript" src="(.+?)"#', $match, $matches_scriptname);
+        $tempScripts[] = $matches_scriptname[1];
+      }
+    }
+
     // decide which head.js to use; the full script or only the loader  
     $headjs_version = variable_get('headjs_version', 'full');
     $head_script = ($headjs_version === 'full') ? HEADJS_PATH_FULL : HEADJS_PATH_LOADER;
@@ -59,7 +73,7 @@ function headjs_preprocess_page(&$variables) {
       'sites/all/libraries/headjs/' . $head_script => array(
         'cache' => TRUE,
         'defer' => FALSE,
-        'preprocess' => TRUE
+        'preprocess' => FALSE
       )
     );
 
