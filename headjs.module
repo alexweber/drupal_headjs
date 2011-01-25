@@ -1,5 +1,5 @@
 <?php
-// $Id: headjs.module,v 1.1 2010/12/30 18:57:16 alexweber Exp $
+// $Id: headjs.module,v 1.1.2.1 2011/01/25 11:10:11 alexweber Exp $
 
 /**
  * @file
@@ -18,6 +18,11 @@ define('HEADJS_PATH_LOADER', 'head.load.min.js');
  * Also so that if jQuery Update is present it can work normally
  */
 function headjs_theme_registry_alter(&$theme_registry) {
+  // make sure preprocess function is only added once
+  if ($pos = array_search('headjs_preprocess_page', $theme_registry['page']['preprocess functions'])) {
+    unset($theme_registry['page']['preprocess functions'][$pos]);
+  }
+  
   $theme_registry['page']['preprocess functions'][] = 'headjs_preprocess_page';
 }
 
@@ -27,8 +32,7 @@ function headjs_theme_registry_alter(&$theme_registry) {
  * Replace Drupal's javascript includes with head.js version
  */
 function headjs_preprocess_page(&$variables) {
-  $headjs_enabled = current(variable_get('headjs_enable', 
-    array('enable' => 'enable'))) !== 0;
+  $headjs_enabled = current(variable_get('headjs_enable', array('enable' => 'enable'))) !== 0;
 
   // Only replace if setting enabled and page has javascript
   if ($headjs_enabled && !empty($variables['scripts'])) {
@@ -40,16 +44,14 @@ function headjs_preprocess_page(&$variables) {
     foreach ($scripts as $category => $cat) {
       foreach ($cat as $script => $data) {
         if (in_array($category, array('core', 'module', 'theme'))) {
-          $tempScripts[] = (string)$script;
+          $tempScripts[] = base_path() . (string) $script;
         }
       }
     }
 
     // decide which head.js to use; the full script or only the loader  
     $headjs_version = variable_get('headjs_version', 'full');
-    $head_script = ($headjs_version === 'full')
-      ? HEADJS_PATH_FULL
-      : HEADJS_PATH_LOADER;
+    $head_script = ($headjs_version === 'full') ? HEADJS_PATH_FULL : HEADJS_PATH_LOADER;
 
     // clear js includes & add head.js as the only one
     $scripts['theme'] = $scripts['module'] = array();
@@ -57,30 +59,25 @@ function headjs_preprocess_page(&$variables) {
       drupal_get_path('module', 'headjs') . '/headjs/' . $head_script => array(
         'cache' => TRUE,
         'defer' => FALSE,
-        'preprocess' => FALSE
+        'preprocess' => TRUE
       )
     );
 
     // build head.js function call
-    $headjs = 'head';
-    foreach ($tempScripts as $js) {
-      $headjs .= '.js("' . $js . '")';
-    }
+    // load scripts in parallel but execute in order
+    $headjs = 'head.js("' . implode('", "', $tempScripts) . '")';
     
     // Rebuild settings script; this is has to be done because Drupal places
-    // settings in a script tag that can get loaded before drupal.js
-    // (since its non-blocking) to make sure it gets executed AFTER drupal.js
-    // we add it to the head.ready() callback
+    // settings in a script tag that can get loaded before drupal.js (since its non-blocking)
+    // so, in order to make sure it gets executed AFTER drupal.js we add it to the head.ready() callback
     $callback = 'jQuery.extend(Drupal.settings, ' . 
-      drupal_to_js(call_user_func_array('array_merge_recursive', 
-        $scripts['setting'])) . ");";
+      drupal_to_js(call_user_func_array('array_merge_recursive', $scripts['setting'])) . ");";
     
     // Execute callback on head.ready()
     $headjs .= "\n.ready(function(){" . $callback . "});";
     
-    // Make sure head.js is the first inline script and allow
-    array_unshift($scripts['inline'], 
-      array('code' => $headjs, 'defer' => FALSE));
+    // Make sure head.js is the first inline script but allow other inline scripts to coexist
+    array_unshift($scripts['inline'], array('code' => $headjs, 'defer' => FALSE));
     
     // empty settings array
     $scripts['setting'] = array();
@@ -116,8 +113,7 @@ function headjs_settings() {
     '#name' => 'headjs_enable',
     '#title' => t('Enable head.js'),
     '#options' => array('enable' => t('Enabled')),
-    '#default_value' => variable_get('headjs_enable', 
-      array('enable' => 'enable')),
+    '#default_value' => variable_get('headjs_enable', array('enable' => 'enable')),
     '#weight' => '-2',
   );
   
