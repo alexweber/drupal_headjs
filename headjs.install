@@ -1,5 +1,5 @@
 <?php
-// $Id$
+// $Id: headjs.install,v 1.1 2010/12/30 18:57:16 alexweber Exp $
 
 /**
  * @file
@@ -20,6 +20,4 @@ function headjs_install() {
 function headjs_uninstall() {
   variable_del('headjs_enable');
   variable_del('headjs_version');
-  variable_del('headjs_path_full');
-  variable_del('headjs_path_loader');
 }

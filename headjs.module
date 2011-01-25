@@ -1,14 +1,14 @@
 <?php
-// $Id$
+// $Id: headjs.module,v 1.1 2010/12/30 18:57:16 alexweber Exp $
 
 /**
  * @file
  * Overrides Drupal's standard javascript loading methods to use head.js
  */
 
-// save default paths to full & loader-only versions
+// paths to full & loader-only versions
 define('HEADJS_PATH_FULL', 'head.min.js');
-define('HEADJS_PATH_LOADER', 'src/head.loader.js');
+define('HEADJS_PATH_LOADER', 'head.load.min.js');
 
 /**
  * Implementation of hook_theme_registry_alter().
@@ -22,7 +22,7 @@ function headjs_theme_registry_alter(&$theme_registry) {
 }
 
 /**
- * Implementation of moduleName_preprocess_hook().
+ * Implements hook_preprocess_page.
  *
  * Replace Drupal's javascript includes with head.js version
  */
@@ -40,12 +40,12 @@ function headjs_preprocess_page(&$variables) {
     foreach ($scripts as $category => $cat) {
       foreach ($cat as $script => $data) {
         if (in_array($category, array('core', 'module', 'theme'))) {
-          $tempScripts[] = (string) $script;
+          $tempScripts[] = (string)$script;
         }
       }
     }
 
-    // decide which head.js to use; the full script or only the loader
+    // decide which head.js to use; the full script or only the loader  
     $headjs_version = variable_get('headjs_version', 'full');
     $head_script = ($headjs_version === 'full')
       ? HEADJS_PATH_FULL
@@ -67,7 +67,10 @@ function headjs_preprocess_page(&$variables) {
       $headjs .= '.js("' . $js . '")';
     }
     
-    // Build settings script
+    // Rebuild settings script; this is has to be done because Drupal places
+    // settings in a script tag that can get loaded before drupal.js
+    // (since its non-blocking) to make sure it gets executed AFTER drupal.js
+    // we add it to the head.ready() callback
     $callback = 'jQuery.extend(Drupal.settings, ' . 
       drupal_to_js(call_user_func_array('array_merge_recursive', 
         $scripts['setting'])) . ");";
@@ -75,8 +78,7 @@ function headjs_preprocess_page(&$variables) {
     // Execute callback on head.ready()
     $headjs .= "\n.ready(function(){" . $callback . "});";
     
-    // Make sure head.js is the first inline script but allow other
-    // inline scripts to coexist
+    // Make sure head.js is the first inline script and allow
     array_unshift($scripts['inline'], 
       array('code' => $headjs, 'defer' => FALSE));
     
@@ -93,8 +95,8 @@ function headjs_preprocess_page(&$variables) {
  */
 function headjs_menu() {
   $items['admin/settings/headjs'] = array(
-    'title' => t('Headjs Settings'),
-    'description' => t('Configure settings for Headjs module.'),
+    'title' => 'Headjs Settings',
+    'description' => 'Configure settings for Headjs module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('headjs_settings'),
     'access arguments' => array('administer site configuration'),
@@ -133,7 +135,7 @@ function headjs_settings() {
   $form['headjs_advanced'] = array(
     '#type' => 'fieldset',
     '#title' => t('Advanced Settings'),
-    '#description' => t('Customize path to head.js library'),
+    '#description' => t('Customize path to head.js library.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#weight' => '0',
@@ -142,7 +144,7 @@ function headjs_settings() {
   $form['headjs_advanced']['head_path_full'] = array(
     '#type' => 'textfield',
     '#title' => t('head.min.js path'),
-    '#description' => t('Relative to /sites/all/modules/headjs/headjs/'),
+    '#description' => t('Relative to /sites/all/modules/headjs/headjs/.'),
     '#required' => '1',
     '#size' => '40',
     '#default_value' => variable_get('headjs_path_full', HEADJS_PATH_FULL),
@@ -152,7 +154,7 @@ function headjs_settings() {
   $form['headjs_advanced']['head_path_loader'] = array(
     '#type' => 'textfield',
     '#title' => t('head.loader.js path'),
-    '#description' => t('Relative to /sites/all/modules/headjs/headjs/'),
+    '#description' => t('Relative to /sites/all/modules/headjs/headjs/.'),
     '#required' => '1',
     '#size' => '40',
     '#default_value' => variable_get('headjs_path_loader', HEADJS_PATH_LOADER),

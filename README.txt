@@ -21,9 +21,9 @@ javascript loading times by adding only one script to the document's
 head and then downloading individual script files in parallel.
 
 Since downloading many small files at the same time is faster than
-downloading one big file, head.js eliminates the need for javascript
-aggregation and is especially beneficial for mobile browsers who limit the
-size of individually cached javascript files.
+downloading one big file, head.js eliminates the need for most javascript
+aggregation and is especially beneficial for certain mobile browsers who limit
+the size of individually cached javascript files.
 
 For more information see: http://headjs.com/#theory
 
@@ -58,7 +58,7 @@ INSTALLATION
     
      and
     
-     /sites/all/modules/headjs/headjs/src/head.loader.js
+     /sites/all/modules/headjs/headjs/head.load.min.js
 
 3. Enable the module at Administer >> Site building >> Modules.
 
@@ -71,10 +71,11 @@ COMPATIBILITY
 -------------
 - Headjs has been succesfully with the following contrib modules:
 
+  * Cumulus
   * Fivestar
   * Javascript Aggregator
   * jQuery UI
-  * jQuery Update
+  * jQuery Update***** (see known issues)
   * Quicktabs
 
 - Headjs has been succesfully with the following 3rd party services
@@ -87,4 +88,14 @@ COMPATIBILITY
 KNOWN ISSUES
 ------------
 
-- Issue with collapsible fieldsets
+- A small patch is required to make jQuery Update play nice with Headjs:
+  
+  * Add the following code right after line 84:
+    
+   #84.  $variables['scripts'] = drupal_get_js('header', $scripts);
+   -->   $variables['scripts_headjs'] = $scripts;
+   
+  * This is necessary because jQuery Update stores drupal_get_js() output in
+    the $variables['scripts'] array and in order to work with it we need the
+    array version. We added this extra line of code to avoid having to use
+    regular expressions to convert the HTML string back to an array.
