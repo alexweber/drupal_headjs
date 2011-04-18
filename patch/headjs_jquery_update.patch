@@ -1,0 +1,13 @@
+diff --git a/jquery_update.module b/jquery_update.module
+index 69b30bf..94aaf52 100644
+--- a/jquery_update.module
++++ b/jquery_update.module
+@@ -81,6 +81,8 @@ function jquery_update_preprocess_page(&$variables) {
+       }
+ 
+       $variables['scripts'] = drupal_get_js('header', $scripts);
++      // keep original array for use with headjs & other modules that might need it
++      $variables['scripts_array'] = $scripts;
+     }
+   }
+ }
