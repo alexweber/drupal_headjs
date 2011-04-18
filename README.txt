@@ -28,7 +28,7 @@ For more information see: http://headjs.com/#theory
 REQUIREMENTS
 ------------
 
-* The head.js library (0.9+)
+* head.js library (0.9+)
 * If you are using jquery_update you must apply the included patch
 
 
@@ -37,11 +37,11 @@ INSTALLATION
 
 1. Copy the headjs directory to your sites/all/modules or sites/all/modules/contrib directory.
 
-2. * Download the head.js release from:
+2. * Download the head.js library from:
 
      http://headjs.com/#download
 
-   * Extract to sites/all/libraries/headjs
+   * Extract it to sites/all/libraries/headjs
 
    * The actual head.js files should be located in:
 
@@ -53,7 +53,7 @@ INSTALLATION
 
 3. Enable the module at Administer >> Site building >> Modules.
 
-4. Visit Administer > Site Configuration > Headjs to configure the module.
+4. Visit Administer > Site Configuration > Performance -> Headjs to configure the module.
 
 5. That's it!
 

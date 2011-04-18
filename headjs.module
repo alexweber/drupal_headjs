@@ -118,8 +118,8 @@ function headjs_perm() {
 function headjs_menu() {
   $items = array();
 
-  $items['admin/settings/headjs'] = array(
-    'title' => t('Headjs Settings'),
+  $items['admin/settings/performance/headjs'] = array(
+    'title' => t('Headjs'),
     'description' => t('Configure settings for Headjs module.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('headjs_settings'),
@@ -133,6 +133,8 @@ function headjs_menu() {
  * Admin settings form
  */
 function headjs_settings() {
+  $form = array();
+
   // Clear the javascript cache when the setting is updated
   $form['#submit'][] = 'drupal_clear_js_cache';
 
