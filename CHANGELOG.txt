@@ -1,7 +1,17 @@
 // $Id$
 
+Headjs 6.x-1.0-rc2, 2011-04-18
+------------------------------
+- Plays nicely with javascript_aggregator
+- Added headjs_path()
+- Implemented headjs_version() for integration with other modules
+- Implemented hook_requirements() to detect head.js library version
+- Integration with Libraries API
+- Displays warnings on hook_enable() if head.js library is not present
+- Implemented hook_help()
+
 Headjs 6.x-1.0-rc, 2011-04-17
---------------------------------
+-----------------------------
 - Development resumed
 - Working from head.js 0.9
 - Included patch for jquery_update

@@ -12,8 +12,27 @@
 function headjs_enable() {
   // This module should run after all others
   db_query("UPDATE {system} SET weight = 999 WHERE name = 'headjs'");
-  cache_clear_all();
   drupal_set_message(t('Headjs module weight has been updated.'));
+  
+  // Check if Javascript Aggregator exists & is enabled
+  if (function_exists('javascript_aggregator_preprocess_page')) {
+    drupal_set_message(t('You should disable Javascript Aggregator to use Headjs'), 'warning');
+  }
+  
+  // Check for presence of headjs script
+  $fn = headjs_path() . HEADJS_FULL;
+  if (!is_readable($fn)) {
+    drupal_set_message(t('Please <a href="http://headjs.com/#download">download</a> and copy the head.js script to your @dir folder', array('@dir' => '/sites/all/libraries/')), 'error');
+  }
+}
+
+/**
+ * Implementation of hook_disable()
+ */
+function headjs_disable() {
+  if (module_exists('javascript_aggregator')) {
+    drupal_set_message(t('Headjs sucessfully disabled, if you disabled Javascript Aggregator you might want to turn it back on.'));
+  }
 }
 
 /**
@@ -24,46 +43,20 @@ function headjs_uninstall() {
   variable_del('headjs_version');
 }
 
-#/**
-# * Implementation of hook_requirements()
-# * @TODO check if headjs library is installed & correct version
-# */
-#function headjs_requirements($phase) {
-#  $requirements = array();
-#  $t = get_t();
+/**
+ * Implementation of hook_requirements()
+ */
+function headjs_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
 
-#  if ($phase == 'runtime') {   
-#    // check if javascript_aggregator is enabled
-#    if (function_exists('javascript_aggregator_preprocess_page')) {
-#      $requirements['headjs_javascript_aggregator'] = array(
-#        'title' => $t('Headjs Javascript Aggregator'),
-#        'description' => $t('Javascript Aggregator must be disabled if you are using Headjs'),
-#        'severity' => REQUIREMENT_ERROR,
-#        'value' => 'Enabled'
-#      );
-#    }
-#    
-#    $file_full = 'sites/all/libraries/headjs/dist/' . HEADJS_FULL;
-#    $file_loader = 'sites/all/libraries/headjs/dist/' . HEADJS_LOADER;
-#    
-#    if (!is_readable($file_full)) {
-#      $requirements['headjs_full_file'] = array(
-#        'title' => $t('Headjs Full File'),
-#        'description' => $t('The file ' . $file_full .' does not exist or is not readable'),
-#        'severity' => REQUIREMENT_ERROR,
-#        'value' => 'Enabled'
-#      );
-#    }
-#    
-#    if (!is_readable($file_loader)) {
-#      $requirements['headjs_loader_file'] = array(
-#        'title' => $t('Headjs Loader File'),
-#        'description' => $t('The file ' . $file_loader .' does not exist or is not readable'),
-#        'severity' => REQUIREMENT_ERROR,
-#        'value' => 'Enabled'
-#      );
-#    }
-#  }
+  if ($phase == 'runtime') {
+    $requirements['headjs'] = array(
+      'title' => $t('Headjs'),
+      'severity' => REQUIREMENT_OK,
+      'value' => headjs_get_version(),
+    );
+  }
 
-#  return $requirements;
-#}
+  return $requirements;
+}

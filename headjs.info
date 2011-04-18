@@ -1,8 +1,8 @@
 ; $Id$
 
-name = Head.js
+name = HeadJS
 description = Implementation of head.js javascript loading library
 core = 6.x
 package = Performance and scalability
 project = "headjs"
-version = "6.x-1.0-rc"
+version = "6.x-1.0-rc2"

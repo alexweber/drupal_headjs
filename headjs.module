@@ -122,6 +122,7 @@ function headjs_menu() {
     'title' => t('Performance'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file path' => drupal_get_path('module', 'system'),
+    'weight' => 0
   );
 
   $items['admin/settings/performance/headjs'] = array(
@@ -130,7 +131,8 @@ function headjs_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('headjs_settings'),
     'access arguments' => array('administer headjs'),
-    'type' => MENU_LOCAL_TASK
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 9
   );
 
   return $items;
@@ -167,4 +169,79 @@ function headjs_settings() {
   );
 
   return system_settings_form($form);
+}
+
+/**
+ * Return the version of head.js that is installed.
+ *
+ * This can be used by other modules' hook_requirements() to ensure that the
+ * proper version of head.js is installed.
+ *
+ * @see version_compare
+ */
+function headjs_get_version() {
+  $version = 0;
+  $pattern = '#	Version		([0-9\.a-z]+)#';
+
+  $headjs_path = headjs_path() . HEADJS_FULL;
+
+  // Return the version of head.js installed
+  $headjs = file_get_contents($headjs_path);
+  if (preg_match($pattern, $headjs, $matches)) {
+    $version = $matches[1];
+  }
+
+  return $version;
+}
+
+/**
+ * Get the path of head.js library
+ * @return string
+ */
+function headjs_path() {
+  static $path;
+
+  if (isset($path)) {
+    return $path;
+  }
+  
+  $path = FALSE;
+  
+  // Libraries API integration.
+  if (function_exists('libraries_get_path')) {
+    $path = libraries_get_path('headjs');
+    // Earlier/current versions of Libraries API return a default path; only
+    // later versions return FALSE.
+    if ($path !== FALSE && !file_exists($path)) {
+      $path = FALSE;
+    }
+  }
+  // Manually check sites/all/libraries in case Libraries API is not available.
+  elseif (file_exists('./sites/all/libraries/headjs')) {
+    $path = 'sites/all/libraries/headjs';
+  }
+  
+  if ($path) {
+    $path .= '/dist/';
+  }
+  
+  return $path;
+}
+
+/**
+ * Implementation of hook_help()
+ */
+function headjs_help($path = '', $arg = NULL) {
+  if (module_exists('jquery_update')) {
+    $output = '';
+    switch ($path) {
+      case 'admin/help#headjs':
+      case 'admin/settings/performance/headjs':
+        // $url = drupal_get_path('module', 'headjs') . '/README.txt';
+        $url = 'https://github.com/alexweber/drupal_headjs/raw/master/README.txt';
+        $output = '<p>'. t('In order to maintain compatibility with jquery_update we need to apply a patch to it. For detailed instructions see the <a href="@url">readme</a>.', array('@url' => $url)). '</p>';
+        break;
+    }
+    return $output;
+  }
 }
