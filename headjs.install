@@ -20,8 +20,8 @@ function headjs_enable() {
   }
   
   // Check for presence of headjs script
-  $fn = headjs_path() . HEADJS_FULL;
-  if (!is_readable($fn)) {
+  $filename = headjs_get_path();
+  if (!is_readable($filename)) {
     drupal_set_message(t('Please <a href="http://headjs.com/#download">download</a> and copy the head.js script to your @dir folder', array('@dir' => '/sites/all/libraries/')), 'error');
   }
 }
@@ -49,12 +49,22 @@ function headjs_uninstall() {
 function headjs_requirements($phase) {
   $requirements = array();
   $t = get_t();
-
-  if ($phase == 'runtime') {
+  $filename = headjs_get_path();
+  
+  if (is_readable($filename)) {
     $requirements['headjs'] = array(
-      'title' => $t('Headjs'),
+      'title' => $t('Head.js Library'),
+      'description' => $t('Download the head.js library at @link to %dir', array(
+        '@link' => 'http://headjs.com/#download',
+        '%dir' => _headjs_path()
+      )),
+      'severity' => REQUIREMENT_ERROR,
+    );
+  } else {
+    $requirements['headjs'] = array(
+      'title' => $t('Head.js Library'),
       'severity' => REQUIREMENT_OK,
-      'value' => headjs_get_version(),
+      'value' => headjs_get_version()
     );
   }
 
