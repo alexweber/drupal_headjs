@@ -1,9 +1,11 @@
 // $Id$
 
-Headjs 6.x-1.0-beta2, 2011-04-17
+Headjs 6.x-1.0-rc, 2011-04-17
 --------------------------------
 - Development resumed
 - Working from head.js 0.9
+- Included patch for jquery_update
+- Fixed a couple issues
 
 Headjs 6.x-1.0-beta1, 2010-12-08
 --------------------------------
