@@ -118,12 +118,19 @@ function headjs_perm() {
 function headjs_menu() {
   $items = array();
 
+  $items['admin/settings/performance/default'] = array(
+    'title' => t('Performance'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file path' => drupal_get_path('module', 'system'),
+  );
+
   $items['admin/settings/performance/headjs'] = array(
     'title' => t('Headjs'),
     'description' => t('Configure settings for Headjs module.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('headjs_settings'),
     'access arguments' => array('administer headjs'),
+    'type' => MENU_LOCAL_TASK
   );
 
   return $items;
@@ -136,7 +143,8 @@ function headjs_settings() {
   $form = array();
 
   // Clear the javascript cache when the setting is updated
-  $form['#submit'][] = 'drupal_clear_js_cache';
+#  $form['#submit'][] = 'drupal_clear_js_cache';
+  $form['#submit'][] = 'cache_clear_all';
 
   $form['headjs_enable'] = array(
     '#type' => 'checkboxes',

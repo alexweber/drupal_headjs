@@ -29,7 +29,41 @@ function headjs_uninstall() {
 # * @TODO check if headjs library is installed & correct version
 # */
 #function headjs_requirements($phase) {
-#  if ($phase === 'runtime') {
-#  
+#  $requirements = array();
+#  $t = get_t();
+
+#  if ($phase == 'runtime') {   
+#    // check if javascript_aggregator is enabled
+#    if (function_exists('javascript_aggregator_preprocess_page')) {
+#      $requirements['headjs_javascript_aggregator'] = array(
+#        'title' => $t('Headjs Javascript Aggregator'),
+#        'description' => $t('Javascript Aggregator must be disabled if you are using Headjs'),
+#        'severity' => REQUIREMENT_ERROR,
+#        'value' => 'Enabled'
+#      );
+#    }
+#    
+#    $file_full = 'sites/all/libraries/headjs/dist/' . HEADJS_FULL;
+#    $file_loader = 'sites/all/libraries/headjs/dist/' . HEADJS_LOADER;
+#    
+#    if (!is_readable($file_full)) {
+#      $requirements['headjs_full_file'] = array(
+#        'title' => $t('Headjs Full File'),
+#        'description' => $t('The file ' . $file_full .' does not exist or is not readable'),
+#        'severity' => REQUIREMENT_ERROR,
+#        'value' => 'Enabled'
+#      );
+#    }
+#    
+#    if (!is_readable($file_loader)) {
+#      $requirements['headjs_loader_file'] = array(
+#        'title' => $t('Headjs Loader File'),
+#        'description' => $t('The file ' . $file_loader .' does not exist or is not readable'),
+#        'severity' => REQUIREMENT_ERROR,
+#        'value' => 'Enabled'
+#      );
+#    }
 #  }
+
+#  return $requirements;
 #}
