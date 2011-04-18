@@ -1,7 +1,12 @@
-// $Id: CHANGELOG.txt,v 1.1 2010/12/30 18:57:16 alexweber Exp $
+// $Id$
 
-Headjs 6.x-1.0, 2010-12-08
----------------------------
+Headjs 6.x-1.0-beta2, 2011-04-17
+--------------------------------
+- Development resumed
+- Working from head.js 0.9
+
+Headjs 6.x-1.0-beta1, 2010-12-08
+--------------------------------
 - Initial beta release for Drupal 6
 - Working with head.js 0.2
 - Tested with the following contrib modules:

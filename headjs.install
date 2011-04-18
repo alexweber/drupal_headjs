@@ -1,5 +1,5 @@
 <?php
-// $Id: headjs.install,v 1.1 2010/12/30 18:57:16 alexweber Exp $
+// $Id$
 
 /**
  * @file
@@ -7,17 +7,29 @@
  */
 
 /**
- * Implementation of hook_install
+ * Implementation of hook_enable()
  */
-function headjs_install() {
+function headjs_enable() {
+  // This module should run after all others
   db_query("UPDATE {system} SET weight = 999 WHERE name = 'headjs'");
   cache_clear_all();
+  drupal_set_message(t('Headjs module weight has been updated.'));
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implementation of hook_uninstall()
  */
 function headjs_uninstall() {
   variable_del('headjs_enable');
   variable_del('headjs_version');
 }
+
+#/**
+# * Implementation of hook_requirements()
+# * @TODO check if headjs library is installed & correct version
+# */
+#function headjs_requirements($phase) {
+#  if ($phase === 'runtime') {
+#  
+#  }
+#}
