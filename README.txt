@@ -41,19 +41,19 @@ INSTALLATION
 
      http://headjs.com/#download
 
-   * Extract it to sites/all/libraries/headjs
+   * Extract the files to sites/all/libraries/headjs
 
    * The actual head.js files should be located in:
 
-     /sites/all/libraries/headjs/dist/head.min.js
+     /sites/all/libraries/headjs/head.min.js
     
      and
     
-     /sites/all/libraries/headjs/dist/head.load.min.js
+     /sites/all/libraries/headjs/head.load.min.js
 
 3. Enable the module at Administer >> Site building >> Modules.
 
-4. Visit Administer > Site Configuration > Performance -> Headjs to configure the module.
+4. Visit Administer >> Site Configuration >> Performance >> Headjs to configure the module.
 
 5. That's it!
 
@@ -74,11 +74,12 @@ HeadJS has been tested and has been found to work 100% with several contrib modu
   - jquery_update
   - jquery_ui
   - advagg
-  - quicktabs
-  - fivestar
-  - boost
   - javascript_aggregator
   - gmap
+  - boost
+  - quicktabs
+  - fivestar
+  - disqus
   - views_slideshow
   - jcarousel
   - colorbox

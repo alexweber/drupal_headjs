@@ -6,6 +6,8 @@
  * Installation hooks for headjs
  */
 
+module_load_include('inc', 'headjs', 'headjs.path');
+
 /**
  * Implementation of hook_enable()
  */
@@ -15,9 +17,8 @@ function headjs_enable() {
   drupal_set_message(t('Headjs module weight has been updated.'));
   
   // Check for presence of headjs script
-  $filename = headjs_get_path();
-  if (!is_readable($filename)) {
-    drupal_set_message(t('Please <a href="http://headjs.com/#download">download</a> and copy the head.js script to your @dir folder', array('@dir' => '/sites/all/libraries/')), 'error');
+  if (!is_readable(headjs_get_path())) {
+    drupal_set_message(t('Please <a href="http://headjs.com/#download">download</a> and copy the head.js script to your @dir folder', array('@dir' => '/sites/all/libraries/headjs')), 'error');
   }
 }
 
@@ -27,6 +28,8 @@ function headjs_enable() {
 function headjs_uninstall() {
   variable_del('headjs_enable');
   variable_del('headjs_version');
+  variable_del('headjs_hijack_header');
+  variable_del('headjs_hijack_closure');
 }
 
 /**
@@ -35,23 +38,24 @@ function headjs_uninstall() {
 function headjs_requirements($phase) {
   $requirements = array();
   $t = get_t();
-  $filename = headjs_get_path();
-  
-  if (is_readable($filename)) {
-    $requirements['headjs'] = array(
-      'title' => $t('Head.js Library'),
-      'description' => $t('Download the head.js library at @link to %dir', array(
-        '@link' => 'http://headjs.com/#download',
-        '%dir' => _headjs_path()
-      )),
-      'severity' => REQUIREMENT_ERROR,
-    );
-  } else {
-    $requirements['headjs'] = array(
-      'title' => $t('Head.js Library'),
-      'severity' => REQUIREMENT_OK,
-      'value' => headjs_get_version()
-    );
+
+  if ($phase == 'runtime') {
+    if (!is_readable(headjs_get_path())) {
+      $requirements['headjs'] = array(
+        'title' => $t('Head.js Library'),
+        'description' => $t('Download the head.js library at @link to %dir', array(
+          '@link' => 'http://headjs.com/#download',
+          '%dir' => _headjs_path()
+        )),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    } else {
+      $requirements['headjs'] = array(
+        'title' => $t('Head.js Library'),
+        'severity' => REQUIREMENT_OK,
+        'value' => headjs_get_version()
+      );
+    }
   }
 
   return $requirements;

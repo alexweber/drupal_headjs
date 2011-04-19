@@ -10,6 +10,8 @@
 define('HEADJS_FULL', 'head.min.js');
 define('HEADJS_LOADER', 'head.load.min.js');
 
+module_load_include('inc', 'headjs', 'headjs.path');
+
 /**
  * Implementation of hook_theme_registry_alter()
  *
@@ -38,17 +40,36 @@ function headjs_preprocess_page(&$variables) {
   if ($headjs_enabled && !empty($variables['scripts'])) {
     list($headscripts, $settings) = _headjs_get_scripts($variables);
 
-    // Check for js added via drupal_set_html_head()
-    // http://drupal.org/node/1029264#comment-3998976
-    if (strpos($variables['head'], '<script') !== false) {
-      $matches = array();
-      preg_match('#<script .+?</script>#s', $variables['head'], $matches);
+    if (variable_get('headjs_hijack_header', TRUE)) {
+      // Check for js added via drupal_set_html_head()
+      // @see http://drupal.org/node/1029264#comment-3998976
+      if (strpos($variables['head'], '<script') !== FALSE) {
+        $matches = array();
+        preg_match('#<script .+?</script>#s', $variables['head'], $matches);
 
-      foreach ($matches as $match) {
-        $variables['head'] = str_replace($match, '', $variables['head']);
-        $matches_scriptname = array();
-        preg_match('#type="text/javascript" src="(.+?)"#', $match, $matches_scriptname);
-        $headscripts[] = $matches_scriptname[1];
+        foreach ($matches as $match) {
+          $matches_scriptname = array();
+          if (preg_match('#src="(.+?)"#', $match, $matches_scriptname)) {
+            $headscripts[] = $matches_scriptname[1];
+            $variables['head'] = str_replace($match, '', $variables['head']);
+          }
+        }
+      }
+    }
+
+    if (variable_get('headjs_hijack_closure', TRUE)) {
+      // Check for js in closure
+      if (strpos($variables['closure'], '<script') !== FALSE) {
+        $matches = array();
+        preg_match('#<script .+?</script>#s', $variables['closure'], $matches);
+
+        foreach ($matches as $match) {
+          $matches_scriptname = array();
+          if (preg_match('#src="(.+?)"#', $match, $matches_scriptname)) {
+            $headscripts[] = $matches_scriptname[1];
+            $variables['closure'] = str_replace($match, '', $variables['closure']);
+          }
+        }
       }
     }
 
@@ -59,7 +80,7 @@ function headjs_preprocess_page(&$variables) {
     // clear js includes & add head.js as the only one
     $scripts = array(
       'core' => array(
-        _headjs_path() . '/dist/' . $head_script => array(
+        _headjs_path() . $head_script => array(
           'cache' => TRUE,
           'defer' => FALSE,
           'preprocess' => FALSE
@@ -72,10 +93,10 @@ function headjs_preprocess_page(&$variables) {
     $headjs = 'head.js("' . implode('", "', $headscripts) . '")';
     
     // In order to make sure settings get set after drupal.js we add them to the head.ready() callback
-    $callback = $settings;
-    
-    // Execute callback on head.ready()
-    $headjs .= "\n.ready(function(){" . $callback . "});";
+    if ($settings) {
+      // Execute callback on head.ready()
+      $headjs .= "\n.ready(function(){" . $settings . "});";
+    }
     
     // Make sure head.js is the first and only inline script
     $scripts['inline'] = array(
@@ -138,6 +159,24 @@ function headjs_settings() {
     '#title' => t('Enable head.js'),
     '#options' => array('enable' => t('Enabled')),
     '#default_value' => variable_get('headjs_enable', array('enable' => 'enable')),
+    '#weight' => '-4',
+  );
+  
+  $form['headjs_hijack_header'] = array(
+    '#type' => 'checkboxes',
+    '#name' => 'headjs_hijack_header',
+    '#title' => t('Override scripts added in header'),
+    '#options' => array('enable' => t('Enabled')),
+    '#default_value' => variable_get('headjs_hijack_header', array('enable' => 'enable')),
+    '#weight' => '-3',
+  );
+  
+  $form['headjs_hijack_closure'] = array(
+    '#type' => 'checkboxes',
+    '#name' => 'headjs_hijack_closure',
+    '#title' => t('Override scripts added in closure'),
+    '#options' => array('enable' => t('Enabled')),
+    '#default_value' => variable_get('headjs_hijack_closure', array('enable' => 'enable')),
     '#weight' => '-2',
   );
   
@@ -166,7 +205,6 @@ function headjs_settings() {
 function headjs_get_version() {
   $version = 0;
   $pattern = '#	Version		([0-9\.a-z]+)#';
-
   $filename = headjs_get_path();
 
   // Return the version of head.js installed
@@ -176,29 +214,6 @@ function headjs_get_version() {
   }
 
   return $version;
-}
-
-/**
- * Get the path of head.min.js file
- * @return string
- */
-function _headjs_get_path() {
-  return _headjs_path() . '/dist/' . HEADJS_FULL;
-}
-
-/**
- * Get the path of head.js library
- * Integrates with Libraries API
- * @return string
- */
-function _headjs_path() {
-  static $path;
-
-  if (!isset($path)) {
-    $path = function_exists('libraries_get_path') ? libraries_get_path('headjs') : 'sites/all/libraries/headjs';
-  }
-  
-  return $path;
 }
 
 /**
@@ -219,12 +234,11 @@ function _headjs_get_scripts($variables) {
   }
  
   // now extract settings
-  // yeah doing another regex here kinda sucks, BUT, if you care enough about performance to use script loaders
-  // then we assume you are caching your html so it's all good! :)
-  $matches = array();
-  preg_match_all('#<script .+?</script>#s', $variables['scripts'], $matches);
-  $matches = current($matches);
-  $settings = trim(str_replace(array('<script type="text/javascript">', '</script>', '<!--//--><![CDATA[//><!--', '//--><!]]>'), '', array_pop($matches)));
-   
+  $cdata = '<!--//--><![CDATA[//><!--';
+  $pos = strpos($variables['scripts'], $cdata);
+  $temp = substr($variables['scripts'], $pos);
+  $replace = array('<script type="text/javascript">', '</script>', $cdata, '//--><!]]>');
+  $settings = (strpos($temp, $cdata) !== FALSE) ? trim(str_replace($replace, '', $temp)) : NULL;
+
   return array($scripts, $settings);
 }

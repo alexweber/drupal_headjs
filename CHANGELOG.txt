@@ -7,6 +7,7 @@ Headjs 6.x-1.0, 2011-04-18
 - Tested and plays nice with LOTS of contrib modules
 - Removed warnings for javascript_aggregator
 - Most parts of the code were rewritten, much leander and more efficient
+- Added option to enable/disable overriding scripts added in header/closure
 
 Headjs 6.x-1.0-rc2, 2011-04-18
 ------------------------------
