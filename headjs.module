@@ -36,22 +36,7 @@ function headjs_preprocess_page(&$variables) {
 
   // Only replace if setting enabled and page has javascript
   if ($headjs_enabled && !empty($variables['scripts'])) {
-    if (isset($variables['scripts_array']) && is_array($variables['scripts_array'])) {
-      $scripts = $variables['scripts_array'];
-    } else {
-      $scripts = drupal_add_js();
-    }
-
-    $tempScripts = array();
-
-    // grab list of js includes in the queue
-    foreach ($scripts as $category => $cat) {
-      foreach ($cat as $script => $data) {
-        if (in_array($category, array('core', 'module', 'theme'))) {
-          $tempScripts[] = base_path() . (string) $script;
-        }
-      }
-    }
+    list($headscripts, $settings) = _headjs_get_scripts($variables);
 
     // Check for js added via drupal_set_html_head()
     // http://drupal.org/node/1029264#comment-3998976
@@ -63,7 +48,7 @@ function headjs_preprocess_page(&$variables) {
         $variables['head'] = str_replace($match, '', $variables['head']);
         $matches_scriptname = array();
         preg_match('#type="text/javascript" src="(.+?)"#', $match, $matches_scriptname);
-        $tempScripts[] = $matches_scriptname[1];
+        $headscripts[] = $matches_scriptname[1];
       }
     }
 
@@ -72,34 +57,33 @@ function headjs_preprocess_page(&$variables) {
     $head_script = ($headjs_version === 'full') ? HEADJS_FULL : HEADJS_LOADER;
 
     // clear js includes & add head.js as the only one
-    $scripts['theme'] = $scripts['module'] = array();
-    $scripts['core'] = array(
-      'sites/all/libraries/headjs/dist/' . $head_script => array(
-        'cache' => TRUE,
-        'defer' => FALSE,
-        'preprocess' => FALSE
+    $scripts = array(
+      'core' => array(
+        _headjs_path() . '/dist/' . $head_script => array(
+          'cache' => TRUE,
+          'defer' => FALSE,
+          'preprocess' => FALSE
+        )
       )
     );
 
     // build head.js function call
     // load scripts in parallel but execute in order
-    $headjs = 'head.js("' . implode('", "', $tempScripts) . '")';
+    $headjs = 'head.js("' . implode('", "', $headscripts) . '")';
     
-    // Rebuild settings script; this is has to be done because Drupal places
-    // settings in a script tag that can get loaded before drupal.js (since its non-blocking)
-    // so, in order to make sure it gets executed AFTER drupal.js we add it to the head.ready() callback
-    $callback = 'jQuery.extend(Drupal.settings, ' . 
-      drupal_to_js(call_user_func_array('array_merge_recursive', $scripts['setting'])) . ");";
+    // In order to make sure settings get set after drupal.js we add them to the head.ready() callback
+    $callback = $settings;
     
     // Execute callback on head.ready()
     $headjs .= "\n.ready(function(){" . $callback . "});";
     
-    // Make sure head.js is the first inline script but allow other inline scripts to coexist
-    array_unshift($scripts['inline'], array('code' => $headjs, 'defer' => FALSE));
-    
-    // empty settings array
-    $scripts['setting'] = array();
-    unset($scripts['setting']);
+    // Make sure head.js is the first and only inline script
+    $scripts['inline'] = array(
+      array(
+        'code' => $headjs,
+        'defer' => FALSE
+      )
+    );
     
     $variables['scripts'] = drupal_get_js('header', $scripts);
   }
@@ -172,24 +156,6 @@ function headjs_settings() {
 }
 
 /**
- * Implementation of hook_help()
- */
-function headjs_help($path = '', $arg = NULL) {
-  if (module_exists('jquery_update')) {
-    $output = '';
-    switch ($path) {
-      case 'admin/help#headjs':
-      case 'admin/settings/performance/headjs':
-        // $url = drupal_get_path('module', 'headjs') . '/README.txt';
-        $url = 'https://github.com/alexweber/drupal_headjs/raw/master/README.txt';
-        $output = '<p>'. t('In order to maintain compatibility with jquery_update we need to apply a patch to it. For detailed instructions see the <a href="@url">readme</a>.', array('@url' => $url)). '</p>';
-        break;
-    }
-    return $output;
-  }
-}
-
-/**
  * Return the version of head.js that is installed.
  *
  * This can be used by other modules' hook_requirements() to ensure that the
@@ -233,4 +199,32 @@ function _headjs_path() {
   }
   
   return $path;
+}
+
+/**
+ * Convert $variables['scripts'] to an array
+ *
+ * @param array $variables
+ * @return array
+ */
+function _headjs_get_scripts($variables) {
+  $scripts = array();
+  $pattern = "!(<script type=\"text\/javascript\" src=\"(.*?))(.*?)(\"(.*?)><\/script>)!";
+
+  // first extract filenames
+  if (preg_match_all($pattern, $variables['scripts'], $matches) > 0) {
+    foreach ($matches[3] as $m) {
+      $scripts[] = $m;
+    }
+  }
+ 
+  // now extract settings
+  // yeah doing another regex here kinda sucks, BUT, if you care enough about performance to use script loaders
+  // then we assume you are caching your html so it's all good! :)
+  $matches = array();
+  preg_match_all('#<script .+?</script>#s', $variables['scripts'], $matches);
+  $matches = current($matches);
+  $settings = trim(str_replace(array('<script type="text/javascript">', '</script>', '<!--//--><![CDATA[//><!--', '//--><!]]>'), '', array_pop($matches)));
+   
+  return array($scripts, $settings);
 }

@@ -6,6 +6,7 @@ CONTENTS OF THIS FILE
  * Requirements
  * Installation
  * Known Issues
+ * Compatibility
 
 
 INTRODUCTION
@@ -29,7 +30,6 @@ REQUIREMENTS
 ------------
 
 * head.js library (0.9+)
-* If you are using jquery_update you must apply the included patch
 
 
 INSTALLATION
@@ -61,21 +61,25 @@ INSTALLATION
 KNOWN ISSUES
 ------------
 
-- Requires a patch to work with jQuery Update
+None so far!
 
-This module tries to maintain a maximum compatibility with all other JavaScript code. If you have any problem, please file an issue in the project homepage.
+- Versions 6.x-1.0-beta2 and 6.x-1.0-beta3 required a patch to play nice with jquery_update. However, we managed to work around this and the patch is no longer necessary. We apologize if you patched your jquery_update and recommend that you undo the patch by re-installing it. (that said, the patch is harmless so I guess if you wanted you could just leave it there with no side-effects)
 
-APPLYING THE PATCH
--------------------
 
-In order to play nice with jquery_update, we need to patch it.
+COMPATIBILITY
+-------------
 
-This patch is not necessary if you are using the modified version that supports jQuery 1.5.2, available here: https://github.com/alexweber/jquery_update. It already includes the patch.
+HeadJS has been tested and has been found to work 100% with several contrib modules including but not limited to:
 
-- Copy the file "headjs_jquery_update.patch" in the "patch" directory to the jquery_update folder
-- Execute the following command in a terminal:
-  patch -p1 < headjs_jquery_update.patch
-
-The reasoning behind this is simple: in jquery_update_preprocess_page() jquery_update makes the necessary changes but replaces $scripts with a drupal_get_js() string. Instead of using a regex to convert the string back to an array, for the sake ofsimplicity we decided to patch jquery_update instead.
-
-Please note that this patch just adds an extra key to $variables, keeping the $scripts array in $variables['scripts_array']. It does not change jquery_update behavior in any other way.
+  - jquery_update
+  - jquery_ui
+  - advagg
+  - quicktabs
+  - fivestar
+  - boost
+  - javascript_aggregator
+  - gmap
+  - views_slideshow
+  - jcarousel
+  - colorbox
+  - fancybox

@@ -1,5 +1,13 @@
 // $Id$
 
+Headjs 6.x-1.0, 2011-04-18
+---------------------------
+- No need for jquery_update patch! Horray!
+- Removed hook_help() not applicable anymore
+- Tested and plays nice with LOTS of contrib modules
+- Removed warnings for javascript_aggregator
+- Most parts of the code were rewritten, much leander and more efficient
+
 Headjs 6.x-1.0-rc2, 2011-04-18
 ------------------------------
 - Plays nicely with javascript_aggregator

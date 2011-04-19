@@ -14,24 +14,10 @@ function headjs_enable() {
   db_query("UPDATE {system} SET weight = 999 WHERE name = 'headjs'");
   drupal_set_message(t('Headjs module weight has been updated.'));
   
-  // Check if Javascript Aggregator exists & is enabled
-  if (function_exists('javascript_aggregator_preprocess_page')) {
-    drupal_set_message(t('You should disable Javascript Aggregator to use Headjs'), 'warning');
-  }
-  
   // Check for presence of headjs script
   $filename = headjs_get_path();
   if (!is_readable($filename)) {
     drupal_set_message(t('Please <a href="http://headjs.com/#download">download</a> and copy the head.js script to your @dir folder', array('@dir' => '/sites/all/libraries/')), 'error');
-  }
-}
-
-/**
- * Implementation of hook_disable()
- */
-function headjs_disable() {
-  if (module_exists('javascript_aggregator')) {
-    drupal_set_message(t('Headjs sucessfully disabled, if you disabled Javascript Aggregator you might want to turn it back on.'));
   }
 }
 
