@@ -1,5 +1,3 @@
-// $Id$
-
 CONTENTS OF THIS FILE
 ---------------------
  * Introduction
@@ -50,6 +48,13 @@ INSTALLATION
      and
     
      /sites/all/libraries/headjs/head.load.min.js
+     
+     OR
+     
+     optionally, they could be placed in the "dist" subdirectory of headjs (for backwards compatibility & drush make friendlines)
+     
+     /sites/all/libraries/headjs/dist/head.min.js
+     /sites/all/libraries/headjs/dist/head.load.min.js
 
 3. Enable the module at Administer >> Site building >> Modules.
 
